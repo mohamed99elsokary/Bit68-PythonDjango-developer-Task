@@ -247,11 +247,7 @@ def echo(
         Support colors on Windows if colorama is installed.
     """
     if file is None:
-        if err:
-            file = _default_text_stderr()
-        else:
-            file = _default_text_stdout()
-
+        file = _default_text_stderr() if err else _default_text_stdout()
     # Convert non bytes/text into the native string type.
     if message is not None and not isinstance(message, (str, bytes, bytearray)):
         out: t.Optional[t.Union[str, bytes]] = str(message)
@@ -260,11 +256,7 @@ def echo(
 
     if nl:
         out = out or ""
-        if isinstance(out, str):
-            out += "\n"
-        else:
-            out += b"\n"
-
+        out += "\n" if isinstance(out, str) else b"\n"
     if not out:
         file.flush()
         return
@@ -569,11 +561,9 @@ def _expand_args(
         if env:
             arg = os.path.expandvars(arg)
 
-        matches = glob(arg, recursive=glob_recursive)
-
-        if not matches:
-            out.append(arg)
-        else:
+        if matches := glob(arg, recursive=glob_recursive):
             out.extend(matches)
 
+        else:
+            out.append(arg)
     return out

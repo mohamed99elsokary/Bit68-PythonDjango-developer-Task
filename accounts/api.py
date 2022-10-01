@@ -8,11 +8,10 @@ from . import serializers
 @api_view(["POST"])
 def register(request):
     serializer = serializers.RegisterUserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
+    if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])

@@ -195,21 +195,21 @@ class StringParamType(ParamType):
     def convert(
         self, value: t.Any, param: t.Optional["Parameter"], ctx: t.Optional["Context"]
     ) -> t.Any:
-        if isinstance(value, bytes):
-            enc = _get_argv_encoding()
-            try:
-                value = value.decode(enc)
-            except UnicodeError:
-                fs_enc = get_filesystem_encoding()
-                if fs_enc != enc:
-                    try:
-                        value = value.decode(fs_enc)
-                    except UnicodeError:
-                        value = value.decode("utf-8", "replace")
-                else:
+        if not isinstance(value, bytes):
+            return str(value)
+        enc = _get_argv_encoding()
+        try:
+            value = value.decode(enc)
+        except UnicodeError:
+            fs_enc = get_filesystem_encoding()
+            if fs_enc != enc:
+                try:
+                    value = value.decode(fs_enc)
+                except UnicodeError:
                     value = value.decode("utf-8", "replace")
-            return value
-        return str(value)
+            else:
+                value = value.decode("utf-8", "replace")
+        return value
 
     def __repr__(self) -> str:
         return "STRING"
@@ -521,10 +521,7 @@ class IntRange(_NumberRangeBase, IntParamType):
     def _clamp(  # type: ignore
         self, bound: int, dir: "te.Literal[1, -1]", open: bool
     ) -> int:
-        if not open:
-            return bound
-
-        return bound + dir
+        return bound + dir if open else bound
 
 
 class FloatParamType(_NumberParamTypeBase):
@@ -692,9 +689,7 @@ class File(ParamType):
             if hasattr(value, "read") or hasattr(value, "write"):
                 return value
 
-            lazy = self.resolve_lazy_flag(value)
-
-            if lazy:
+            if lazy := self.resolve_lazy_flag(value):
                 f: t.IO = t.cast(
                     t.IO,
                     LazyFile(
@@ -976,10 +971,7 @@ def convert_type(ty: t.Optional[t.Any], default: t.Optional[t.Any] = None) -> Pa
                 # A tuple of tuples needs to detect the inner types.
                 # Can't call convert recursively because that would
                 # incorrectly unwind the tuple to a single type.
-                if isinstance(item, (tuple, list)):
-                    ty = tuple(map(type, item))
-                else:
-                    ty = type(item)
+                ty = tuple(map(type, item)) if isinstance(item, (tuple, list)) else type(item)
         else:
             ty = type(default)
 

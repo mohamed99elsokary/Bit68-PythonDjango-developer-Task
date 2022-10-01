@@ -60,15 +60,18 @@ def _verify_python_env() -> None:
                 )
             )
         elif has_c_utf8:
-            extra.append(
-                _(
-                    "This system supports the C.UTF-8 locale which is"
-                    " recommended. You might be able to resolve your"
-                    " issue by exporting the following environment"
-                    " variables:"
+            extra.extend(
+                (
+                    _(
+                        "This system supports the C.UTF-8 locale which is"
+                        " recommended. You might be able to resolve your"
+                        " issue by exporting the following environment"
+                        " variables:"
+                    ),
+                    "    export LC_ALL=C.UTF-8\n    export LANG=C.UTF-8",
                 )
             )
-            extra.append("    export LC_ALL=C.UTF-8\n    export LANG=C.UTF-8")
+
         else:
             extra.append(
                 _(
