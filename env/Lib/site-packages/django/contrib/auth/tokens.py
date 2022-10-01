@@ -36,7 +36,7 @@ class PasswordResetTokenGenerator:
         """
         Check that a password reset token is correct for a given user.
         """
-        if not (user and token):
+        if not user or not token:
             return False
         # Parse the token
         try:
@@ -50,14 +50,13 @@ class PasswordResetTokenGenerator:
             return False
 
         # Check that the timestamp/uid has not been tampered with
-        if not constant_time_compare(self._make_token_with_timestamp(user, ts), token):
-            return False
-
-        # Check the timestamp is within limit.
-        if (self._num_seconds(self._now()) - ts) > settings.PASSWORD_RESET_TIMEOUT:
-            return False
-
-        return True
+        return (
+            self._num_seconds(self._now()) - ts <= settings.PASSWORD_RESET_TIMEOUT
+            if constant_time_compare(
+                self._make_token_with_timestamp(user, ts), token
+            )
+            else False
+        )
 
     def _make_token_with_timestamp(self, user, timestamp):
         # timestamp is number of seconds since 2001-1-1. Converted to base 36,
@@ -69,7 +68,7 @@ class PasswordResetTokenGenerator:
             secret=self.secret,
             algorithm=self.algorithm,
         ).hexdigest()[::2]  # Limit to shorten the URL.
-        return "%s-%s" % (ts_b36, hash_string)
+        return f"{ts_b36}-{hash_string}"
 
     def _make_hash_value(self, user, timestamp):
         """

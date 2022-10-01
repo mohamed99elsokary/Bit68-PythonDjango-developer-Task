@@ -54,14 +54,13 @@ class LoginUserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user = authenticate(username=data["username"], password=data["password"])
-        if user == None:
-            try:
-                user = User.objects.get(username=data["username"])
-            except:
-                user = None
-            if user != None:
-                raise serializers.ValidationError({"password": "wrong password"})
-            else:
-                raise serializers.ValidationError({"username": "Invalid username"})
-        else:
+        if user is not None:
             return user
+        try:
+            user = User.objects.get(username=data["username"])
+        except:
+            user = None
+        if user is None:
+            raise serializers.ValidationError({"username": "Invalid username"})
+        else:
+            raise serializers.ValidationError({"password": "wrong password"})

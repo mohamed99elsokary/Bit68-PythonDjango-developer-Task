@@ -139,11 +139,7 @@ def _make_command(
 
     help = attrs.get("help")
 
-    if help is None:
-        help = inspect.getdoc(f)
-    else:
-        help = inspect.cleandoc(help)
-
+    help = inspect.getdoc(f) if help is None else inspect.cleandoc(help)
     attrs["help"] = help
     return cls(
         name=name or f.__name__.lower().replace("_", "-"),

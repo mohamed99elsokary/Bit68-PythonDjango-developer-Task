@@ -75,7 +75,9 @@ def get_object_or_404(klass, *args, **kwargs):
     try:
         return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
-        raise Http404('No %s matches the given query.' % queryset.model._meta.object_name)
+        raise Http404(
+            f'No {queryset.model._meta.object_name} matches the given query.'
+        )
 
 
 def get_list_or_404(klass, *args, **kwargs):
@@ -93,10 +95,12 @@ def get_list_or_404(klass, *args, **kwargs):
             "First argument to get_list_or_404() must be a Model, Manager, or "
             "QuerySet, not '%s'." % klass__name
         )
-    obj_list = list(queryset.filter(*args, **kwargs))
-    if not obj_list:
-        raise Http404('No %s matches the given query.' % queryset.model._meta.object_name)
-    return obj_list
+    if obj_list := list(queryset.filter(*args, **kwargs)):
+        return obj_list
+    else:
+        raise Http404(
+            f'No {queryset.model._meta.object_name} matches the given query.'
+        )
 
 
 def resolve_url(to, *args, **kwargs):
